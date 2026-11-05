@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오답 정리 - 정보처리기사 CBT</title>
+    <link rel="stylesheet" href="d.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            text-align: left;
+            padding: 16px 20px;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #1e293b;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not(.answered) {
+            background-color: #eff6ff;
+            border-color: #2563eb;
+        }
+
+        .option-btn.correct {
+            background-color: #2563eb !important;
+            color: white !important;
+            border-color: #2563eb !important;
+            font-weight: bold;
+        }
+
+        .option-btn.incorrect {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #ef4444 !important;
+            font-weight: bold;
+            text-decoration: line-through;
+        }
+
+        .options-grid.answered .option-btn {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .question-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 3.5rem;
+            color: #2563eb;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <header class="page-header">
+            <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> 메인으로</a>
+            <h2><i class="fa-solid fa-book-bookmark"></i> 나만의 오답 노트</h2>
+        </header>
+
+        <main class="page-content">
+            <div class="wrong-stats">
+                <div class="stat-box">
+                    <span id="wrong-count" class="stat-num">0</span>
+                    <span class="stat-label">남은 오답 수</span>
+                </div>
+                <div class="stat-box">
+                    <span id="solved-count" class="stat-num">0</span>
+                    <span class="stat-label">오늘 완등한 오답</span>
+                </div>
+            </div>
+
+            <div id="wrong-quiz-area"></div>
+        </main>
+    </div>
+
+    <script>
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            alert('로그인 해주세요.');
+            location.href = 'auth.html';
+        }
+
+        let wrongQuestions = [];
+        let currentIndex = 0;
+        let todaySolvedCount = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWrongQuestions();
+        });
+
+        function loadWrongQuestions() {
+            wrongQuestions = JSON.parse(localStorage.getItem('cbt_wrong_questions') || '[]');
+            document.getElementById('wrong-count').textContent = wrongQuestions.length;
+            
+            if (wrongQuestions.length === 0) {
+                renderEmptyState();
+            } else {
+                if (currentIndex >= wrongQuestions.length) currentIndex = 0;
+                renderWrongQuestion();
+            }
+        }
+
+        function renderEmptyState() {
+            const area = document.getElementById('wrong-quiz-area');
+            area.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <h3>저장된 오답이 없습니다!</h3>
+                    <p style="margin-top: 8px;">모든 오답 문제를 완벽히 정복했거나 아직 풀지 않았습니다.</p>
+                    <a href="solve.html" class="btn btn-primary" style="margin-top: 24px; display: inline-flex;">문제 풀러가기</a>
+                </div>
+            `;
+        }
+
+        function renderWrongQuestion() {
+            const area = document.getElementById('wrong-quiz-area');
+            const q = wrongQuestions[currentIndex];
+
+            let optionsHTML = `<div class="options-grid" id="options-grid">`;
+            [1, 2, 3, 4].forEach(i => {
+                const optText = q[`option_${i}`] || q[`option${i}`];
+                if (!optText) return;
+
+                optionsHTML += `
+                    <button class="option-btn" onclick="checkWrongAnswer(${i}, ${q.correct_answer})">
+                        ${`①②③④`[i-1]} ${optText}
+                    </button>
+                `;
+            });
+            optionsHTML += `</div>`;
+
+            area.innerHTML = `
+                <div class="question-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span class="subject-tag">[${q.exam_session || '오답복습'}] ${q.subject_name || ''}</span>
+                        <span style="font-size: 0.85rem; color: #64748b; font-weight: bold;">${currentIndex + 1} / ${wrongQuestions.length}</span>
+                    </div>
+                    <div style="font-size: 1.1rem; font-weight: 700; line-height: 1.5; color: #1e293b; margin-bottom: 16px;">
+                        ${q.question_text}
+                    </div>
+                    ${optionsHTML}
+                    <div id="feedback-msg" style="margin-top: 16px; font-weight: bold; text-align: center;"></div>
+                </div>
+            `;
+        }
+
+        function checkWrongAnswer(selected, correct) {
+            const grid = document.getElementById('options-grid');
+            const buttons = grid.querySelectorAll('.option-btn');
+            const feedback = document.getElementById('feedback-msg');
+            grid.classList.add('answered');
+
+            const currentQ = wrongQuestions[currentIndex];
+
+            if (parseInt(selected) === parseInt(correct)) {
+                buttons[selected - 1].classList.add('correct');
+                feedback.innerHTML = `<span style="color: #2563eb;">🎉 정답입니다! 오답 노트에서 자동 삭제됩니다.</span>`;
+
+                wrongQuestions = wrongQuestions.filter(q => q.id !== currentQ.id);
+                localStorage.setItem('cbt_wrong_questions', JSON.stringify(wrongQuestions));
+                
+                todaySolvedCount++;
+                document.getElementById('solved-count').textContent = todaySolvedCount;
+
+                setTimeout(() => {
+                    loadWrongQuestions();
+                }, 1200);
+
+            } else {
+                buttons[selected - 1].classList.add('incorrect');
+                buttons[correct - 1].classList.add('correct');
+                feedback.innerHTML = `<span style="color: #ef4444;">❌ 틀렸습니다. 다시 복습해보세요!</span>`;
+
+                setTimeout(() => {
+                    feedback.innerHTML += `
+                        <div style="margin-top: 12px;">
+                            <button class="sm-btn" onclick="nextQuestion()">다음 오답 문제</button>
+                        </div>
+                    `;
+                }, 400);
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex = (currentIndex + 1) % wrongQuestions.length;
+            renderWrongQuestion();
+        }
+    </script>
+</body>
+</html>

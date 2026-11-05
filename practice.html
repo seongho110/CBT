@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>과목별 집중 풀기 - CBT</title>
+    <link rel="stylesheet" href="d.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            text-align: left;
+            padding: 16px 20px;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .option-btn:hover:not(.answered) {
+            background: #f8fbff;
+            border-color: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .option-btn.correct {
+            background-color: #2563eb !important;
+            color: white !important;
+            border-color: #2563eb !important;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        }
+
+        .option-btn.incorrect {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #ef4444 !important;
+            text-decoration: line-through;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+        }
+
+        .options-grid.answered .option-btn {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .question-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .quiz-nav-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 14px;
+            margin-top: 15px;
+        }
+
+        .subject-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .subject-card:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <header class="page-header">
+            <a href="solve.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> 문제 모드 선택으로</a>
+            <h2><i class="fa-solid fa-list-check"></i> 과목별 집중 풀기</h2>
+        </header>
+
+        <main class="page-content">
+            <div id="selection-screen">
+                <h3>1. 회차 선택</h3>
+                <select id="session-select" class="input-group" style="width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc;">
+                    <option value="2026년 1회">2026년 1회 기출</option>
+                    <option value="2025년 3회">2025년 3회 기출</option>
+                    <option value="2024년 1회">2024년 1회 기출</option>
+                    <option value="2021년 1회">2021년 1회 기출</option>
+                </select>
+
+                <h3 style="margin-top: 30px;">2. 과목 선택</h3>
+                <div class="subject-grid">
+                    <div class="subject-card" onclick="startQuiz(1)"><h4>1과목</h4><p>소프트웨어 설계</p></div>
+                    <div class="subject-card" onclick="startQuiz(2)"><h4>2과목</h4><p>소프트웨어 개발</p></div>
+                    <div class="subject-card" onclick="startQuiz(3)"><h4>3과목</h4><p>데이터베이스 구축</p></div>
+                    <div class="subject-card" onclick="startQuiz(4)"><h4>4과목</h4><p>프로그래밍 언어 활용</p></div>
+                    <div class="subject-card" onclick="startQuiz(5)"><h4>5과목</h4><p>정보시스템 구축관리</p></div>
+                </div>
+            </div>
+
+            <div id="quiz-screen" style="display: none;">
+                <div class="quiz-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #eee;">
+                    <h3 id="quiz-title" style="margin: 0; color: #333; font-size: 1.1rem;"></h3>
+                    <div class="score-board" style="font-weight: bold; color: #555;">
+                        진행도: <span id="current-q-num" style="color: #2563eb;">1</span> / <span id="total-q">20</span>
+                    </div>
+                </div>
+                
+                <div id="question-container"></div>
+
+                <div class="quiz-nav-actions">
+                    <button id="practice-prev-btn" class="btn btn-outline" style="min-width: 120px; padding: 10px 16px;" onclick="changeQuestion(-1)">이전 문제</button>
+                    <button id="practice-next-btn" class="btn btn-primary" style="min-width: 120px; padding: 10px 16px;" onclick="changeQuestion(1)">다음 문제</button>
+                    <button id="practice-submit-btn" class="btn btn-secondary" style="display: none; min-width: 120px; padding: 10px 16px;" onclick="showFinalResult()">최종 제출</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            alert('로그인 해주세요.');
+            location.href = 'auth.html';
+        }
+
+        const API_BASE_URL = window.location.origin;
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let userAnswers = {};
+
+        function saveWrongQuestion(questionObj) {
+            let wrongList = JSON.parse(localStorage.getItem('cbt_wrong_questions') || '[]');
+            const exists = wrongList.some(item => 
+                (item.id && item.id === questionObj.id) || item.question_text === questionObj.question_text
+            );
+            if (!exists) {
+                wrongList.push(questionObj);
+                localStorage.setItem('cbt_wrong_questions', JSON.stringify(wrongList));
+            }
+        }
+
+        async function startQuiz(subjectId) {
+            const session = document.getElementById('session-select').value;
+            const subjectNames = ["소프트웨어 설계", "소프트웨어 개발", "데이터베이스 구축", "프로그래밍 언어 활용", "정보시스템 구축관리"];
+            
+            document.getElementById('selection-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'block';
+            document.getElementById('quiz-title').innerText = `[${session}] ${subjectId}과목: ${subjectNames[subjectId-1]}`;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/questions?session=${encodeURIComponent(session)}&subject_id=${subjectId}`);
+                currentQuestions = await response.json();
+                
+                if(currentQuestions.length === 0) {
+                    document.getElementById('question-container').innerHTML = '<p>해당 과목의 문제가 등록되지 않았습니다.</p>';
+                    return;
+                }
+
+                document.getElementById('total-q').innerText = currentQuestions.length;
+                currentIndex = 0;
+                userAnswers = {};
+                renderSingleQuestion();
+            } catch (error) {
+                document.getElementById('question-container').innerHTML = '<p>데이터를 불러오지 못했습니다. 서버를 확인해주세요.</p>';
+            }
+        }
+
+        function renderSingleQuestion() {
+            const container = document.getElementById('question-container');
+            const q = currentQuestions[currentIndex];
+
+            document.getElementById('current-q-num').innerText = currentIndex + 1;
+
+            const isAnswered = userAnswers[currentIndex] !== undefined;
+            const correctChoice = parseInt(q.correct_answer);
+
+            let optionsHTML = `<div class="options-grid ${isAnswered ? 'answered' : ''}">`;
+
+            [1, 2, 3, 4].forEach(i => {
+                const optText = q[`option_${i}`] || q[`option${i}`];
+                if (!optText) return;
+
+                let extraClass = '';
+                if (isAnswered) {
+                    if (i === correctChoice) extraClass = 'correct';
+                    if (i === userAnswers[currentIndex] && userAnswers[currentIndex] !== correctChoice) extraClass = 'incorrect';
+                }
+
+                optionsHTML += `
+                    <button class="option-btn ${extraClass}" onclick="selectAnswer(${i})">
+                        ${`①②③④`[i-1]} ${optText}
+                    </button>
+                `;
+            });
+
+            optionsHTML += `</div>`;
+
+            container.innerHTML = `
+                <div class="question-card">
+                    <div style="font-weight: bold; color: #2563eb; margin-bottom: 10px;">문제 ${currentIndex + 1}</div>
+                    <div style="font-size: 1.15rem; font-weight: 700; line-height: 1.5; color: #1e293b;">${q.question_text}</div>
+                    ${optionsHTML}
+                </div>
+            `;
+
+            document.getElementById('practice-prev-btn').style.display = currentIndex === 0 ? 'none' : 'inline-block';
+            if (currentIndex === currentQuestions.length - 1) {
+                document.getElementById('practice-next-btn').style.display = 'none';
+                document.getElementById('practice-submit-btn').style.display = 'inline-block';
+            } else {
+                document.getElementById('practice-next-btn').style.display = 'inline-block';
+                document.getElementById('practice-submit-btn').style.display = 'none';
+            }
+        }
+
+        function selectAnswer(choice) {
+            if (userAnswers[currentIndex] !== undefined) return;
+            userAnswers[currentIndex] = choice;
+
+            const q = currentQuestions[currentIndex];
+            if (parseInt(choice) !== parseInt(q.correct_answer)) {
+                saveWrongQuestion(q);
+            }
+
+            renderSingleQuestion();
+        }
+
+        function changeQuestion(step) {
+            const nextIdx = currentIndex + step;
+            if (nextIdx >= 0 && nextIdx < currentQuestions.length) {
+                currentIndex = nextIdx;
+                renderSingleQuestion();
+            }
+        }
+
+        function showFinalResult() {
+            let correctCount = 0;
+            currentQuestions.forEach((q, idx) => {
+                if (parseInt(userAnswers[idx]) === parseInt(q.correct_answer)) correctCount++;
+            });
+
+            const total = currentQuestions.length;
+            const score = Math.round((correctCount / total) * 100);
+            
+            const container = document.getElementById('quiz-screen');
+            container.innerHTML = `
+                <div class="question-card" style="text-align: center; padding: 40px 20px;">
+                    <h2 style="color: #2563eb; margin-bottom: 20px;">🎉 과목 학습 완료!</h2>
+                    <p>총 ${total}문제 중 <strong>${correctCount}문제</strong>를 맞히셨습니다.</p>
+                    <div style="font-size: 48px; font-weight: bold; color: #059669; margin: 20px 0;">${score}점</div>
+                    <button class="btn btn-primary" onclick="location.reload()">다른 과목 풀기</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정보처리기사 CBT 사이트</title>
+    <link rel="stylesheet" href="d.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="main-container">
+        <!-- 헤더 섹션 -->
+        <header class="hero-header">
+            <div class="badge"><i class="fa-solid fa-graduation-cap"></i> 2026 최신 출제기준 반영</div>
+            <h1 class="main-title">정보처리기사 CBT 사이트</h1>
+            <p class="subtitle">실전 모의고사부터 오답노트까지 한 번에 완벽하게 대비하세요.</p>
+        </header>
+
+        <!-- 메인 메뉴 버튼 -->
+        <nav class="menu-nav">
+            <a href="solve.html" class="btn btn-primary menu-link">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>문제 풀기</span>
+            </a>
+            <a href="wrong.html" class="btn btn-secondary menu-link">
+                <i class="fa-solid fa-book-bookmark"></i>
+                <span>오답 정리</span>
+            </a>
+            <a href="auth.html" id="auth-btn" class="btn btn-outline">
+                <i class="fa-solid fa-user-check" id="auth-icon"></i>
+                <span id="auth-btn-text">로그인 / 회원가입</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const authBtn = document.getElementById('auth-btn');
+            const authBtnText = document.getElementById('auth-btn-text');
+            const authIcon = document.getElementById('auth-icon');
+            const menuLinks = document.querySelectorAll('.menu-link');
+
+            // 1. 로그인 상태이면 로그아웃 버튼으로 표시 및 로그아웃 처리
+            if (isLoggedIn) {
+                authBtnText.textContent = '로그아웃';
+                authIcon.className = 'fa-solid fa-right-from-bracket';
+                authBtn.setAttribute('href', '#');
+                
+                authBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (confirm('로그아웃 하시겠습니까?')) {
+                        localStorage.removeItem('isLoggedIn');
+                        localStorage.removeItem('userEmail');
+                        alert('로그아웃 되었습니다.');
+                        location.reload();
+                    }
+                });
+            }
+
+            // 2. 로그인 안 한 상태에서 메뉴 클릭 시 경고창 띄우고 로그인 페이지로 이동
+            menuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    if (!isLoggedIn) {
+                        e.preventDefault();
+                        alert('로그인 해주세요.');
+                        location.href = 'auth.html';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

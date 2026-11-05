@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 / 회원가입 - 정보처리기사 CBT</title>
+    <link rel="stylesheet" href="d.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="page-container page-container-sm">
+        <header class="page-header">
+            <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> 메인으로</a>
+            <div class="tab-header">
+                <button id="tab-login-btn" class="tab-btn active" onclick="switchTab('login')">로그인</button>
+                <button id="tab-signup-btn" class="tab-btn" onclick="switchTab('signup')">회원가입</button>
+            </div>
+        </header>
+
+        <main class="page-content">
+            <!-- 로그인 폼 -->
+            <form id="login-form" class="auth-form active">
+                <div class="input-group">
+                    <label for="login-email">이메일 계정</label>
+                    <input type="email" id="login-email" placeholder="example@email.com" required>
+                </div>
+                <div class="input-group">
+                    <label for="login-password">비밀번호</label>
+                    <input type="password" id="login-password" placeholder="비밀번호 입력" required>
+                </div>
+                <button type="submit" class="submit-btn">로그인</button>
+            </form>
+
+            <!-- 회원가입 폼 -->
+            <form id="signup-form" class="auth-form">
+                <div class="input-group">
+                    <label for="signup-name">이름</label>
+                    <input type="text" id="signup-name" placeholder="홍길동" required>
+                </div>
+                <div class="input-group">
+                    <label for="signup-email">이메일 계정</label>
+                    <input type="email" id="signup-email" placeholder="example@email.com" required>
+                </div>
+                <div class="input-group">
+                    <label for="signup-password">비밀번호</label>
+                    <input type="password" id="signup-password" placeholder="8자 이상 입력" required>
+                </div>
+                <button type="submit" class="submit-btn">회원가입 시작하기</button>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        // 백엔드 서버 동적 주소 설정
+        const API_BASE_URL = window.location.origin;
+
+        // 탭 전환 (로그인 <-> 회원가입)
+        function switchTab(type) {
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const loginBtn = document.getElementById('tab-login-btn');
+            const signupBtn = document.getElementById('tab-signup-btn');
+
+            if (type === 'login') {
+                loginForm.classList.add('active');
+                signupForm.classList.remove('active');
+                loginBtn.classList.add('active');
+                signupBtn.classList.remove('active');
+            } else {
+                signupForm.classList.add('active');
+                loginForm.classList.remove('active');
+                signupBtn.classList.add('active');
+                loginBtn.classList.remove('active');
+            }
+        }
+
+        // 1. 회원가입 API 연동
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await res.json();
+                alert(data.message);
+
+                if (res.ok) {
+                    document.getElementById('signup-form').reset();
+                    switchTab('login');
+                }
+            } catch (err) {
+                console.error('회원가입 에러:', err);
+                alert('서버와 통신 중 오류가 발생했습니다.');
+            }
+        });
+
+        // 2. 로그인 API 연동
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+                
+                if (res.ok) {
+                    alert(data.message || '로그인 성공!');
+                    
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userEmail', email);
+
+                    location.href = 'index.html';
+                } else {
+                    alert(data.message || '로그인 정보가 일치하지 않습니다.');
+                }
+            } catch (err) {
+                console.error('로그인 에러:', err);
+                alert('서버와 통신 중 오류가 발생했습니다.');
+            }
+        });
+    </script>
+</body>
+</html>

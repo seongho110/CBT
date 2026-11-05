@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문제 풀기 - 정보처리기사 CBT</title>
+    <link rel="stylesheet" href="d.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background-color: #f8fafc; 
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .hidden { display: none !important; }
+
+        .mode-container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+        }
+
+        .mode-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #475569;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.05rem;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: #2563eb; }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .mode-card {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 3.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-card:hover {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.08);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            color: #2563eb;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-desc {
+            font-size: 0.95rem;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .modal-card h3 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 1.25rem;
+            color: #0f172a;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 6px;
+            margin-top: 12px;
+        }
+
+        .select-box {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            background: #fff;
+        }
+        .select-box:focus { border-color: #2563eb; }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .quiz-container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .q-meta { font-size: 1rem; font-weight: 700; color: #2563eb; margin-bottom: 12px; }
+        .q-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 24px; line-height: 1.6; }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            text-align: left;
+            padding: 16px 20px;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #1e293b;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not(.answered) {
+            background-color: #eff6ff;
+            border-color: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .option-btn.correct {
+            background-color: #2563eb !important;
+            color: #ffffff !important;
+            border-color: #2563eb !important;
+            font-weight: 700 !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .option-btn.incorrect {
+            background-color: #ef4444 !important;
+            color: #ffffff !important;
+            border-color: #ef4444 !important;
+            font-weight: 700 !important;
+            text-decoration: line-through;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .options-grid.answered .option-btn {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .quiz-actions { display: flex; justify-content: space-between; margin-top: 28px; }
+
+        .btn-action {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-action:hover { opacity: 0.9; }
+        .btn-blue { background: #2563eb; color: #fff; }
+        .btn-gray { background: #64748b; color: #fff; }
+        .btn-green { background: #16a34a; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div id="mode-select-box" class="mode-container">
+        <div class="mode-header">
+            <a href="index.html" class="back-link">
+                <i class="fa-solid fa-arrow-left"></i>
+                메인으로
+            </a>
+            <div class="header-title">
+                <i class="fa-solid fa-pen-to-square"></i>
+                문제 풀기 모드 선택
+            </div>
+        </div>
+
+        <div class="card-grid">
+            <div id="mock-exam-card" class="mode-card">
+                <i class="fa-solid fa-rotate-left card-icon"></i>
+                <div class="card-title">실전 모의고사</div>
+                <div class="card-desc">
+                    100문항 / 150분 제한시간<br>
+                    실제 시험과 동일한 조건으로 평가합니다.
+                </div>
+            </div>
+
+            <div id="subject-exam-card" class="mode-card">
+                <i class="fa-solid fa-list-check card-icon"></i>
+                <div class="card-title">과목별 집중 풀기</div>
+                <div class="card-desc">
+                    1~5과목 중 원하는 과목을 선택하여<br>
+                    취약 영역을 집중 학습합니다.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mock-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3>실전 모의고사 회차 선택</h3>
+            <label class="form-label">시험 회차(년도):</label>
+            <select id="mock-session-select" class="select-box">
+                <option value="">-- 년도 및 회차 선택 --</option>
+            </select>
+            <div class="modal-actions">
+                <button id="mock-start-btn" class="btn-action btn-blue">시험 시작</button>
+                <button id="mock-close-btn" class="btn-action btn-gray">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="subject-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3>과목별 집중 풀기 선택</h3>
+            
+            <label class="form-label">1. 회차 선택:</label>
+            <select id="subject-session-select" class="select-box">
+                <option value="">-- 회차 선택 --</option>
+            </select>
+
+            <label class="form-label">2. 과목 선택:</label>
+            <select id="subject-select" class="select-box">
+                <option value="1">1과목: 소프트웨어 설계</option>
+                <option value="2">2과목: 소프트웨어 개발</option>
+                <option value="3">3과목: 데이터베이스 구축</option>
+                <option value="4">4과목: 프로그래밍 언어 활용</option>
+                <option value="5">5과목: 정보시스템 구축 관리</option>
+            </select>
+
+            <div class="modal-actions">
+                <button id="subject-start-btn" class="btn-action btn-blue">학습 시작</button>
+                <button id="subject-close-btn" class="btn-action btn-gray">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-area" class="quiz-container hidden">
+        <div id="q-meta" class="q-meta"></div>
+        <div id="q-title" class="q-title"></div>
+        <div id="options-container" class="options-grid"></div>
+
+        <div class="quiz-actions">
+            <button id="prev-btn" class="btn-action btn-gray">이전 문제</button>
+            <button id="next-btn" class="btn-action btn-blue">다음 문제</button>
+            <button id="submit-btn" class="btn-action btn-green hidden">최종 제출</button>
+        </div>
+    </div>
+
+    <script>
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            alert('로그인 해주세요.');
+            location.href = 'auth.html';
+        }
+
+        const BACKEND_URL = window.location.origin;
+
+        // 오답 저장 함수
+        function saveWrongQuestion(questionObj) {
+            let wrongList = JSON.parse(localStorage.getItem('cbt_wrong_questions') || '[]');
+            const exists = wrongList.some(item => 
+                (item.id && item.id === questionObj.id) || item.question_text === questionObj.question_text
+            );
+            if (!exists) {
+                wrongList.push(questionObj);
+                localStorage.setItem('cbt_wrong_questions', JSON.stringify(wrongList));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const mockExamCard = document.getElementById('mock-exam-card');
+            const subjectExamCard = document.getElementById('subject-exam-card');
+
+            const mockModal = document.getElementById('mock-modal');
+            const mockSessionSelect = document.getElementById('mock-session-select');
+            const mockStartBtn = document.getElementById('mock-start-btn');
+            const mockCloseBtn = document.getElementById('mock-close-btn');
+
+            const subjectModal = document.getElementById('subject-modal');
+            const subjectSessionSelect = document.getElementById('subject-session-select');
+            const subjectSelect = document.getElementById('subject-select');
+            const subjectStartBtn = document.getElementById('subject-start-btn');
+            const subjectCloseBtn = document.getElementById('subject-close-btn');
+
+            const modeSelectBox = document.getElementById('mode-select-box');
+            const quizArea = document.getElementById('quiz-area');
+            const qMeta = document.getElementById('q-meta');
+            const qTitle = document.getElementById('q-title');
+            const optionsContainer = document.getElementById('options-container');
+
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+
+            let questions = [];
+            let currentIndex = 0;
+            let userAnswers = {};
+
+            async function fetchSessions(selectElement) {
+                try {
+                    const res = await fetch(`${BACKEND_URL}/api/questions/sessions`);
+                    if (!res.ok) throw new Error('회차 목록을 불러올 수 없습니다.');
+                    const data = await res.json();
+                    const sessions = data.sessions || [];
+
+                    selectElement.innerHTML = '<option value="">-- 년도 및 회차 선택 --</option>';
+                    if (sessions.length === 0) {
+                        selectElement.innerHTML += '<option value="">등록된 회차가 없습니다.</option>';
+                    } else {
+                        sessions.forEach(sess => {
+                            const opt = document.createElement('option');
+                            opt.value = sess;
+                            opt.textContent = sess;
+                            selectElement.appendChild(opt);
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('백엔드 서버 통신 오류가 발생했습니다.');
+                }
+            }
+
+            mockExamCard.addEventListener('click', () => {
+                fetchSessions(mockSessionSelect);
+                mockModal.classList.remove('hidden');
+            });
+            mockCloseBtn.addEventListener('click', () => mockModal.classList.add('hidden'));
+
+            mockStartBtn.addEventListener('click', async () => {
+                const sess = mockSessionSelect.value;
+                if (!sess) {
+                    alert('년도 및 회차를 선택해 주세요.');
+                    return;
+                }
+                await loadQuestions(`${BACKEND_URL}/api/questions?session=${encodeURIComponent(sess)}`);
+                mockModal.classList.add('hidden');
+            });
+
+            subjectExamCard.addEventListener('click', () => {
+                fetchSessions(subjectSessionSelect);
+                subjectModal.classList.remove('hidden');
+            });
+            subjectCloseBtn.addEventListener('click', () => subjectModal.classList.add('hidden'));
+
+            subjectStartBtn.addEventListener('click', async () => {
+                const sess = subjectSessionSelect.value;
+                const subj = subjectSelect.value;
+                if (!sess || !subj) {
+                    alert('회차와 과목을 선택해 주세요.');
+                    return;
+                }
+                await loadQuestions(`${BACKEND_URL}/api/questions?session=${encodeURIComponent(sess)}&subject_id=${subj}`);
+                subjectModal.classList.add('hidden');
+            });
+
+            async function loadQuestions(url) {
+                try {
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error('문제 불러오기 실패');
+                    const data = await res.json();
+                    if (!data || data.length === 0) {
+                        alert('해당 조건에 등록된 문제가 없습니다.');
+                        return;
+                    }
+                    questions = data;
+                    currentIndex = 0;
+                    userAnswers = {};
+
+                    modeSelectBox.classList.add('hidden');
+                    quizArea.classList.remove('hidden');
+                    renderQuestion();
+                } catch (err) {
+                    alert(err.message);
+                }
+            }
+
+            function renderQuestion() {
+                const q = questions[currentIndex];
+                
+                qMeta.textContent = `[${q.exam_session}] ${currentIndex + 1} / ${questions.length}번 문항 (${q.subject_name || ''})`;
+                qTitle.textContent = `${currentIndex + 1}. ${q.question_text}`;
+
+                optionsContainer.innerHTML = '';
+                const isAnswered = userAnswers[currentIndex] !== undefined;
+                if (isAnswered) optionsContainer.classList.add('answered');
+                else optionsContainer.classList.remove('answered');
+
+                const correctChoice = parseInt(q.correct_answer);
+
+                [1, 2, 3, 4].forEach(i => {
+                    const optText = q[`option_${i}`] || q[`option${i}`];
+                    if (!optText) return;
+
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.textContent = `①②③④`[i-1] + ` ${optText}`;
+
+                    if (isAnswered) {
+                        btn.classList.add('answered');
+                        if (i === correctChoice) btn.classList.add('correct');
+                        if (i === userAnswers[currentIndex] && userAnswers[currentIndex] !== correctChoice) {
+                            btn.classList.add('incorrect');
+                        }
+                    } else {
+                        btn.addEventListener('click', () => {
+                            userAnswers[currentIndex] = i;
+
+                            if (parseInt(i) !== parseInt(correctChoice)) {
+                                saveWrongQuestion(q);
+                            }
+
+                            renderQuestion();
+                        });
+                    }
+
+                    optionsContainer.appendChild(btn);
+                });
+
+                prevBtn.style.display = currentIndex === 0 ? 'none' : 'inline-block';
+                if (currentIndex === questions.length - 1) {
+                    nextBtn.classList.add('hidden');
+                    submitBtn.classList.remove('hidden');
+                } else {
+                    nextBtn.classList.remove('hidden');
+                    submitBtn.classList.add('hidden');
+                }
+            }
+
+            prevBtn.addEventListener('click', () => {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    renderQuestion();
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentIndex < questions.length - 1) {
+                    currentIndex++;
+                    renderQuestion();
+                }
+            });
+
+            submitBtn.addEventListener('click', () => {
+                let score = 0;
+                questions.forEach((q, idx) => {
+                    if (parseInt(userAnswers[idx]) === parseInt(q.correct_answer)) score++;
+                });
+
+                alert(`풀이 종료!\n총 ${questions.length}문항 중 ${score}문항을 맞히셨습니다.`);
+                location.reload();
+            });
+        });
+    </script>
+</body>
+</html>
